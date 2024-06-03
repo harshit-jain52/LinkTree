@@ -1,90 +1,171 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"encoding/json"
 	"log"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Link struct {
-	ID    int    `json:"id"`
-	Title string `json:"title"`
-	Url   string `json:"url"`
+	ID    primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Title string             `json:"title"`
+	Url   string             `json:"url"`
 }
 
-func main() {
-	app := fiber.New()
+var collection *mongo.Collection
 
+func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal("Error loading .env file", err)
 	}
 
-	PORT := os.Getenv("PORT")
+	MONGODB_URI := os.Getenv("MONGODB_URI")
+	clientOptions := options.Client().ApplyURI(MONGODB_URI)
+	client, err := mongo.Connect(context.Background(), clientOptions)
 
-	links := []Link{}
+	if err != nil {
+		log.Fatal("Error connecting to MongoDB", err)
+	}
 
-	app.Get("/api/links", func(c *fiber.Ctx) error {
-		return c.Status(200).JSON(links)
-	})
+	defer client.Disconnect(context.Background())
 
-	app.Post("/api/link", func(c *fiber.Ctx) error {
-		link := &Link{}
+	err = client.Ping(context.Background(), nil)
 
-		if err := c.BodyParser(link); err != nil {
-			return c.Status(422).JSON(fiber.Map{
-				"error": "Unprocessable Entity",
+	if err != nil {
+		log.Fatal("Error pinging MongoDB", err)
+	}
+
+	log.Println("Connected to MongoDB")
+
+	collection = client.Database("linktree_db").Collection("links")
+
+	app := fiber.New()
+
+	app.Get("/api/links", getLinks)
+	app.Post("/api/links", createLink)
+	app.Patch("/api/links/:id", updateLink)
+	app.Delete("/api/links/:id", deleteLink)
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "5000"
+	}
+
+	log.Fatal(app.Listen(":" + port))
+}
+
+func getLinks(c *fiber.Ctx) error {
+	var links []Link
+
+	cursor, err := collection.Find(context.Background(), bson.M{})
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Error fetching links",
+		})
+	}
+
+	defer cursor.Close(context.Background())
+
+	for cursor.Next(context.Background()) {
+		var link Link
+		if err := cursor.Decode(&link); err != nil {
+			return c.Status(500).JSON(fiber.Map{
+				"error": "Error decoding links",
 			})
 		}
+		links = append(links, link)
+	}
 
-		if link.Title == "" || link.Url == "" {
-			return c.Status(400).JSON(fiber.Map{
-				"error": "Title and URL are required",
-			})
-		}
+	return c.Status(200).JSON(links)
+}
 
-		link.ID = len(links) + 1
-		links = append(links, *link)
+func createLink(c *fiber.Ctx) error {
+	link := new(Link)
 
-		return c.Status(201).JSON(link)
-	})
-
-	app.Patch("/api/link/:id", func(c *fiber.Ctx) error {
-		id := c.Params("id")
-		link := &Link{}
-		if err := c.BodyParser(link); err != nil {
-			return err
-		}
-
-		for i, l := range links {
-			if fmt.Sprint(l.ID) == id {
-				links[i] = *link
-				return c.Status(200).JSON(link)
-			}
-		}
-
-		return c.Status(404).JSON(fiber.Map{
-			"error": "Link not found",
+	if err := c.BodyParser(link); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Error parsing request",
 		})
-	})
+	}
 
-	app.Delete("/api/link/:id", func(c *fiber.Ctx) error {
-		id := c.Params("id")
-
-		for i, link := range links {
-			if fmt.Sprint(link.ID) == id {
-				links = append(links[:i], links[i+1:]...)
-				return c.SendStatus(204)
-			}
-		}
-
-		return c.Status(404).JSON(fiber.Map{
-			"error": "Link not found",
+	if link.Title == "" || link.Url == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Title and URL are required",
 		})
-	})
+	}
 
-	log.Fatal(app.Listen(":" + PORT))
+	result, err := collection.InsertOne(context.Background(), link)
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Error creating link",
+		})
+	}
+
+	link.ID = result.InsertedID.(primitive.ObjectID)
+
+	return c.Status(200).JSON(link)
+}
+
+func updateLink(c *fiber.Ctx) error {
+	id := c.Params("id")
+	objectID, err := primitive.ObjectIDFromHex(id)
+
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Invalid ID",
+		})
+	}
+
+	var update map[string]interface{}
+	err = json.Unmarshal(c.Body(), &update)
+	if err != nil {
+		return c.Status(400).SendString("Bad Request")
+	}
+
+	filter := bson.M{"_id": objectID}
+	updateBson := bson.M{"$set": update}
+
+	_, err = collection.UpdateOne(context.Background(), filter, updateBson)
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Error updating link",
+		})
+	}
+
+	return c.Status(200).JSON(fiber.Map{"success": true})
+}
+
+func deleteLink(c *fiber.Ctx) error {
+	id := c.Params("id")
+	objectID, err := primitive.ObjectIDFromHex(id)
+
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Invalid ID",
+		})
+	}
+
+	filter := bson.M{"_id": objectID}
+
+	_, err = collection.DeleteOne(context.Background(), filter)
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Error deleting link",
+		})
+	}
+
+	return c.Status(200).JSON(fiber.Map{"success": true})
 }
