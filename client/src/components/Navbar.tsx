@@ -27,8 +27,10 @@ function Navbar() {
             variant={"ghost"}
             leftIcon={<LuGithub />}
             onClick={() =>
-              (window.location.href =
-                "https://github.com/harshit-jain52/LinkTree")
+              window.open(
+                "https://github.com/harshit-jain52/LinkTree",
+                "_blank"
+              )
             }
             fontSize={"xl"}
             justifySelf={"start"}
