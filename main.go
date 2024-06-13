@@ -26,6 +26,7 @@ func main() {
 	}))
 
 	routes.LinksRoutes(app)
+	routes.UserRoutes(app)
 
 	log.Fatal(app.Listen(":" + configs.EnvPort()))
 }

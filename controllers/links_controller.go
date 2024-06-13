@@ -12,12 +12,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var collection *mongo.Collection = configs.GetCollection(configs.DB, "links")
+var linkCol *mongo.Collection = configs.GetCollection(configs.DB, "links")
 
 func GetLinks(c *fiber.Ctx) error {
 	var links []models.Link
 
-	cursor, err := collection.Find(context.Background(), bson.M{})
+	cursor, err := linkCol.Find(context.Background(), bson.M{})
 
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
@@ -55,7 +55,7 @@ func CreateLink(c *fiber.Ctx) error {
 		})
 	}
 
-	result, err := collection.InsertOne(context.Background(), link)
+	result, err := linkCol.InsertOne(context.Background(), link)
 
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
@@ -87,7 +87,7 @@ func UpdateLink(c *fiber.Ctx) error {
 	filter := bson.M{"_id": objectID}
 	updateBson := bson.M{"$set": update}
 
-	_, err = collection.UpdateOne(context.Background(), filter, updateBson)
+	_, err = linkCol.UpdateOne(context.Background(), filter, updateBson)
 
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
@@ -110,7 +110,7 @@ func DeleteLink(c *fiber.Ctx) error {
 
 	filter := bson.M{"_id": objectID}
 
-	_, err = collection.DeleteOne(context.Background(), filter)
+	_, err = linkCol.DeleteOne(context.Background(), filter)
 
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
