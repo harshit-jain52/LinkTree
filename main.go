@@ -25,8 +25,8 @@ func main() {
 		AllowHeaders: "Origin,Content-Type,Accept",
 	}))
 
-	routes.LinksRoutes(app)
 	routes.UserRoutes(app)
+	routes.LinksRoutes(app)
 
 	log.Fatal(app.Listen(":" + configs.EnvPort()))
 }

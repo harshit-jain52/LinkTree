@@ -15,10 +15,19 @@ import (
 var linkCol *mongo.Collection = configs.GetCollection(configs.DB, "links")
 
 func GetLinks(c *fiber.Ctx) error {
+	tree := c.Params("tree")
+	foundUser := new(models.User)
 	var links []models.Link
 
-	cursor, err := linkCol.Find(context.Background(), bson.M{})
+	err := userCol.FindOne(c.Context(), bson.M{"name": tree}).Decode(&foundUser)
 
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{
+			"error": "Tree not found",
+		})
+	}
+
+	cursor, err := linkCol.Find(context.Background(), bson.M{"uid": foundUser.User_id})
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"error": "Error fetching links",
@@ -29,11 +38,7 @@ func GetLinks(c *fiber.Ctx) error {
 
 	for cursor.Next(context.Background()) {
 		var link models.Link
-		if err := cursor.Decode(&link); err != nil {
-			return c.Status(500).JSON(fiber.Map{
-				"error": "Error decoding links",
-			})
-		}
+		cursor.Decode(&link)
 		links = append(links, link)
 	}
 
@@ -42,6 +47,13 @@ func GetLinks(c *fiber.Ctx) error {
 
 func CreateLink(c *fiber.Ctx) error {
 	link := new(models.Link)
+	treeIDInterface := c.Locals("uid")
+	treeID, ok := treeIDInterface.(string)
+	if !ok {
+		return c.Status(403).JSON(fiber.Map{
+			"error": "Forbidden",
+		})
+	}
 
 	if err := c.BodyParser(link); err != nil {
 		return c.Status(400).JSON(fiber.Map{
@@ -55,6 +67,7 @@ func CreateLink(c *fiber.Ctx) error {
 		})
 	}
 
+	link.Uid = treeID
 	result, err := linkCol.InsertOne(context.Background(), link)
 
 	if err != nil {
@@ -65,16 +78,35 @@ func CreateLink(c *fiber.Ctx) error {
 
 	link.ID = result.InsertedID.(primitive.ObjectID)
 
+	userFilter := bson.M{"user_id": treeID}
+	update := bson.M{"$push": bson.M{"links": link.ID}}
+	_, err = userCol.UpdateOne(context.Background(), userFilter, update)
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Error updating tree",
+		})
+	}
+
 	return c.Status(200).JSON(link)
 }
 
 func UpdateLink(c *fiber.Ctx) error {
+	treeIDInterface := c.Locals("uid")
+	_, ok := treeIDInterface.(string)
+
 	id := c.Params("id")
 	objectID, err := primitive.ObjectIDFromHex(id)
 
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{
 			"error": "Invalid ID",
+		})
+	}
+
+	if !ok {
+		return c.Status(403).JSON(fiber.Map{
+			"error": "Forbidden",
 		})
 	}
 
@@ -101,6 +133,13 @@ func UpdateLink(c *fiber.Ctx) error {
 func DeleteLink(c *fiber.Ctx) error {
 	id := c.Params("id")
 	objectID, err := primitive.ObjectIDFromHex(id)
+	treeIDInterface := c.Locals("uid")
+	treeID, ok := treeIDInterface.(string)
+	if !ok {
+		return c.Status(403).JSON(fiber.Map{
+			"error": "Forbidden",
+		})
+	}
 
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{
@@ -115,6 +154,16 @@ func DeleteLink(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"error": "Error deleting link",
+		})
+	}
+
+	userFilter := bson.M{"user_id": treeID}
+	update := bson.M{"$pull": bson.M{"links": objectID}}
+	_, err = userCol.UpdateOne(context.Background(), userFilter, update)
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Error updating tree",
 		})
 	}
 
