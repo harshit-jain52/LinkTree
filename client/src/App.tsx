@@ -1,16 +1,19 @@
-import { Container, Stack } from "@chakra-ui/react";
+import { Stack } from "@chakra-ui/react";
 import Navbar from "./components/Navbar";
-import LinkForm from "./components/LinkForm";
-import LinkList from "./components/LinkList";
+import Home from "./pages/Home";
+import Tree from "./pages/Tree";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 function App() {
   return (
     <Stack h="100vh">
       <Navbar />
-      <Container>
-        <LinkList />
-        <LinkForm />
-      </Container>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/tree/:name" element={<Tree />} />
+        </Routes>
+      </Router>
     </Stack>
   );
 }

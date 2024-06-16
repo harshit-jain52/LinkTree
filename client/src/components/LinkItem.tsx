@@ -1,6 +1,11 @@
 import { ExternalLinkIcon } from "@chakra-ui/icons";
 import { Button } from "@chakra-ui/react";
-import { LinkT } from "./LinkList";
+
+export type LinkT = {
+  _id: string;
+  title: string;
+  url: string;
+};
 
 function LinkItem({ link }: { link: LinkT }) {
   return (
