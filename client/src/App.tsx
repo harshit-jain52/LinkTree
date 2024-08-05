@@ -2,6 +2,8 @@ import { Stack } from "@chakra-ui/react";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Tree from "./pages/Tree";
+import EditTree from "./pages/Edit";
+import LoginPage from "./pages/Login";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 function App() {
@@ -11,7 +13,9 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/login" element={<LoginPage />} />
           <Route path="/tree/:name" element={<Tree />} />
+          <Route path="/edit/:name" element={<EditTree />} />
         </Routes>
       </Router>
     </Stack>

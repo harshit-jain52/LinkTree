@@ -27,13 +27,17 @@ function LinkForm() {
     mutationFn: async (e: React.FormEvent) => {
       e.preventDefault();
       try {
-        const response = await fetch("http://localhost:5000/api/links", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ title: newTitle, url: newUrl }),
-        });
+        const response = await fetch(
+          `http://localhost:5000/api/links/`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${localStorage.getItem("treeToken")}`,
+            },
+            body: JSON.stringify({ title: newTitle, url: newUrl }),
+          }
+        );
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data.error) || "Something went wrong";
