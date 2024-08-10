@@ -1,21 +1,24 @@
 import { useState } from "react";
 import { useAuthContext } from "./useAuthContext";
 
-interface LoginData {
+interface SignupData {
   username: string;
   password: string;
 }
 
-export const useLogin = () => {
+export const useSignup = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { dispatch: dispatchTree } = useAuthContext();
 
-  const login = async ({ username, password }: LoginData): Promise<boolean> => {
+  const signup = async ({
+    username,
+    password,
+  }: SignupData): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
 
-    const response = await fetch(`http://localhost:5000/api/login`, {
+    const response = await fetch(`http://localhost:5000/api/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -39,5 +42,5 @@ export const useLogin = () => {
     return false;
   };
 
-  return { login, isLoading, error };
+  return { signup, isLoading, error };
 };

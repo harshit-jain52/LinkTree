@@ -11,17 +11,17 @@ import {
   Heading,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import { useLogin } from "../hooks/useLogin";
+import { useSignup } from "../hooks/useSignup";
 
-const LoginPage = () => {
+const SignupPage = () => {
   const navigate = useNavigate();
-  const { login } = useLogin();
+  const { signup } = useSignup();
   const [tree, setTree] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = async (event: React.FormEvent) => {
+  const handleSignup = async (event: React.FormEvent) => {
     event.preventDefault();
-    const success = await login({ username: tree, password });
+    const success = await signup({ username: tree, password });
     if (success) {
       navigate(`/edit/${tree}`);
     }
@@ -37,9 +37,8 @@ const LoginPage = () => {
       rounded="lg"
       boxShadow="lg"
     >
-      <Heading mb="6">Manage your Tree</Heading>
-
-      <form onSubmit={handleLogin}>
+      <Heading mb="6">Create a new tree</Heading>
+      <form onSubmit={handleSignup}>
         <VStack spacing="6">
           <FormControl>
             <FormLabel id="tree">Tree ID</FormLabel>
@@ -62,12 +61,12 @@ const LoginPage = () => {
             />
           </FormControl>
           <Button type="submit" colorScheme="teal" size="lg" fontSize="md">
-            Sign in
+            Sign up
           </Button>
           <Text mt="4">
-            Don't have an account?{" "}
-            <Link color="teal.500" onClick={() => navigate("/signup")}>
-              Register
+            Already have an account?{" "}
+            <Link color="teal.500" onClick={() => navigate("/login")}>
+              Login
             </Link>
           </Text>
         </VStack>
@@ -76,4 +75,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default SignupPage;
