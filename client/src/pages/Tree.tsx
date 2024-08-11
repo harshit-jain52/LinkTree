@@ -18,7 +18,7 @@ function Tree() {
   return (
     <Container>
       <Button onClick={handleEditTree}>Edit Tree</Button>
-      <LinkList treeName={name} />
+      <LinkList treeName={name} isEditing={false} />
     </Container>
   );
 }

@@ -14,7 +14,7 @@ function EditTree() {
   return (
     <Container>
       <LinkForm />
-      <LinkList treeName={name} />
+      <LinkList treeName={name} isEditing={true} />
     </Container>
   );
 }
