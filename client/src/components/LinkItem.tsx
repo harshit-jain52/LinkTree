@@ -105,6 +105,7 @@ function LinkItem({ link, isEditing }: { link: LinkT; isEditing: boolean }) {
         target="_blank"
         rightIcon={<ExternalLinkIcon />}
         variant="solid"
+        width={"100%"}
       >
         {link.title}
       </Button>

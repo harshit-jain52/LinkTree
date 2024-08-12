@@ -1,4 +1,4 @@
-import { Container, Button } from "@chakra-ui/react";
+import { Container, Button, Flex } from "@chakra-ui/react";
 import LinkList from "../components/LinkList";
 import { useParams, useNavigate } from "react-router-dom";
 import NotFound from "../components/NotFound";
@@ -17,8 +17,12 @@ function Tree() {
 
   return (
     <Container>
-      <Button onClick={handleEditTree}>Edit Tree</Button>
       <LinkList treeName={name} isEditing={false} />
+      <Flex justifyContent="center">
+        <Button colorScheme="teal" onClick={handleEditTree}>
+          Edit Tree
+        </Button>
+      </Flex>
     </Container>
   );
 }
