@@ -12,4 +12,5 @@ func LinksRoutes(app *fiber.App) {
 	app.Post("/api/links", controllers.CreateLink)
 	app.Patch("/api/links/:id", controllers.UpdateLink)
 	app.Delete("/api/links/:id", controllers.DeleteLink)
+	app.Get("/api/auth/:tree", controllers.Authenticate)
 }

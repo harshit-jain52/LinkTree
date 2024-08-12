@@ -169,3 +169,32 @@ func DeleteLink(c *fiber.Ctx) error {
 
 	return c.Status(200).JSON(fiber.Map{"success": true})
 }
+
+func Authenticate(c *fiber.Ctx) error {
+	tree := c.Params("tree")
+	foundUser := new(models.User)
+	treeNameInterface := c.Locals("name")
+	treeName, ok := treeNameInterface.(string)
+	if !ok {
+		return c.Status(403).JSON(fiber.Map{
+			"error": "Forbidden",
+		})
+	}
+	err := userCol.FindOne(c.Context(), bson.M{"name": tree}).Decode(&foundUser)
+
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{
+			"error": "Tree not found",
+		})
+	}
+
+	if foundUser.Name != treeName {
+		return c.Status(403).JSON(fiber.Map{
+			"error": "Forbidden",
+		})
+	}
+
+	return c.Status(200).JSON(fiber.Map{
+		"success": true,
+	})
+}
