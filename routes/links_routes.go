@@ -8,9 +8,8 @@ import (
 
 func LinksRoutes(app *fiber.App) {
 	app.Get("/api/links/:tree", controllers.GetLinks)
-	app.Use(middleware.Authenticate)
-	app.Post("/api/links", controllers.CreateLink)
-	app.Patch("/api/links/:id", controllers.UpdateLink)
-	app.Delete("/api/links/:id", controllers.DeleteLink)
-	app.Get("/api/auth/:tree", controllers.Authenticate)
+	app.Post("/api/links", middleware.Authenticate, controllers.CreateLink)
+	app.Patch("/api/links/:id", middleware.Authenticate, controllers.UpdateLink)
+	app.Delete("/api/links/:id", middleware.Authenticate, controllers.DeleteLink)
+	app.Get("/api/auth/:tree", middleware.Authenticate, controllers.Authenticate)
 }
