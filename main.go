@@ -26,12 +26,12 @@ func main() {
 		AllowHeaders: "Origin,Content-Type,Accept,Authorization",
 	}))
 
-	routes.UserRoutes(app)
-	routes.LinksRoutes(app)
-
 	if os.Getenv("ENV") == "production" {
 		app.Static("/", "./client/dist")
 	}
+
+	routes.UserRoutes(app)
+	routes.LinksRoutes(app)
 
 	log.Fatal(app.Listen(":" + configs.EnvPort()))
 }
