@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -27,6 +28,10 @@ func main() {
 
 	routes.UserRoutes(app)
 	routes.LinksRoutes(app)
+
+	if os.Getenv("ENV") == "production" {
+		app.Static("/", "./client/dist")
+	}
 
 	log.Fatal(app.Listen(":" + configs.EnvPort()))
 }

@@ -15,6 +15,7 @@ import {
 import { LinkIcon, AddIcon } from "@chakra-ui/icons";
 import { useState } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { BASE_URL } from "../App";
 
 function LinkForm() {
   const bg = useColorModeValue("gray.300", "gray.700");
@@ -28,7 +29,7 @@ function LinkForm() {
       e.preventDefault();
       try {
         const response = await fetch(
-          `http://localhost:5000/api/links/`,
+          `${BASE_URL}/links/`,
           {
             method: "POST",
             headers: {

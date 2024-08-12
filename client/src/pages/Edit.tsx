@@ -4,6 +4,7 @@ import { Container } from "@chakra-ui/react";
 import LinkList from "../components/LinkList";
 import NotFound from "../components/NotFound";
 import LinkForm from "../components/LinkForm";
+import { BASE_URL } from "../App";
 
 function EditTree() {
   const { name } = useParams<{ name: string }>();
@@ -14,7 +15,7 @@ function EditTree() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/auth/${name}`, {
+      const response = await fetch(`${BASE_URL}/auth/${name}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

@@ -16,6 +16,7 @@ import {
   ModalFooter,
 } from "@chakra-ui/react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { BASE_URL } from "../App";
 
 export type LinkT = {
   _id: string;
@@ -41,7 +42,7 @@ function LinkItem({ link, isEditing }: { link: LinkT; isEditing: boolean }) {
     mutationFn: async () => {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/links/${link._id}`,
+          `${BASE_URL}/links/${link._id}`,
           {
             method: "DELETE",
             headers: {
@@ -70,7 +71,7 @@ function LinkItem({ link, isEditing }: { link: LinkT; isEditing: boolean }) {
     mutationFn: async () => {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/links/${link._id}`,
+          `${BASE_URL}/links/${link._id}`,
           {
             method: "PATCH",
             headers: {

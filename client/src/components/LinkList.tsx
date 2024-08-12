@@ -2,6 +2,7 @@ import { Flex, Spinner } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import LinkItem, { LinkT } from "./LinkItem";
 import NotFound from "./NotFound";
+import { BASE_URL } from "../App";
 
 function LinkList({
   treeName,
@@ -19,7 +20,7 @@ function LinkList({
     queryFn: async () => {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/links/${treeName}`
+          `${BASE_URL}/links/${treeName}`
         );
         const data = await response.json();
         if (!response.ok) {
